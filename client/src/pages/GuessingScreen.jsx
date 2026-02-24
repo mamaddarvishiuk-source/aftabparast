@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGame } from '../hooks/useGame';
 import toast from 'react-hot-toast';
 
 export default function GuessingScreen() {
-  const { socket, room, playerId, roundData } = useGame();
+  const { socket, room, playerId, roundData, handleLeave } = useGame();
   const [guess, setGuess] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [showEscape, setShowEscape] = useState(false);
 
   const chameleonIds = roundData?.chameleonIds || [];
   const chameleonNames = roundData?.chameleonNames || [];
   const isChameleon = chameleonIds.includes(playerId);
   const topic = roundData?.topic;
+
+  // Show escape button after 10 seconds if stuck
+  useEffect(() => {
+    const t = setTimeout(() => setShowEscape(true), 10000);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleGuess = () => {
     if (!guess.trim()) return toast.error('یه کلمه بنویس!');
@@ -57,9 +64,7 @@ export default function GuessingScreen() {
                 </button>
               </>
             ) : (
-              <div>
-                <p style={{ fontWeight: 700, fontSize: '1.1rem' }}>⏳ منتظر نتیجه...</p>
-              </div>
+              <p style={{ fontWeight: 700, fontSize: '1.1rem' }}>⏳ منتظر نتیجه...</p>
             )}
           </div>
         ) : (
@@ -69,6 +74,17 @@ export default function GuessingScreen() {
               آفتاب‌پرست داره کلمه رو حدس می‌زنه...
             </p>
             <p className="text-muted">نفس نکش! 😤</p>
+          </div>
+        )}
+
+        {/* Escape hatch — appears after 10s if stuck */}
+        {showEscape && (
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+            <div className="divider" />
+            <p className="text-muted text-center" style={{ fontSize: '0.85rem' }}>گیر کردی؟ 😅</p>
+            <button className="btn btn-ghost btn-sm btn-full" onClick={handleLeave}>
+              🏠 برگشت به خانه
+            </button>
           </div>
         )}
       </div>

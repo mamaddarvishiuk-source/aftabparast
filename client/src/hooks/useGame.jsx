@@ -1,16 +1,53 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useSocket } from '../hooks/useSocket';
+import { useSocket } from './useSocket';
 import toast from 'react-hot-toast';
 
 const GameContext = createContext(null);
 
 export function GameProvider({ children }) {
-  const { socket } = useSocket();
+  const { socket, connected } = useSocket();
   const [room, setRoom] = useState(null);
   const [playerId, setPlayerId] = useState(() => localStorage.getItem('aftabPlayerId') || null);
   const [roomCode, setRoomCode] = useState(() => localStorage.getItem('aftabRoomCode') || null);
-  const [phase, setPhase] = useState('home'); // home | lobby | reveal | speaking | voting | guessing | scores | help
-  const [roundData, setRoundData] = useState(null); // personal round data with isChameleon
+  const [phase, setPhase] = useState('home');
+  const [roundData, setRoundData] = useState(null);
+  const [disconnectedFor, setDisconnectedFor] = useState(0);
+
+  // If disconnected for more than 15 seconds while in-game, show escape toast
+  useEffect(() => {
+    if (connected || phase === 'home' || phase === 'help') {
+      setDisconnectedFor(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setDisconnectedFor(prev => {
+        if (prev >= 15) {
+          clearInterval(interval);
+          toast(
+            (t) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, direction: 'rtl' }}>
+                <span>📴 اتصال قطع شد!</span>
+                <button
+                  style={{
+                    background: '#e94560', color: '#fff', border: 'none',
+                    borderRadius: 8, padding: '8px 16px', cursor: 'pointer',
+                    fontFamily: 'Vazirmatn, sans-serif', fontWeight: 700
+                  }}
+                  onClick={() => { toast.dismiss(t.id); handleLeave(); }}
+                >
+                  🏠 برگشت به خانه
+                </button>
+              </div>
+            ),
+            { duration: 30000, className: 'custom-toast' }
+          );
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [connected, phase]);
 
   useEffect(() => {
     if (!socket) return;
@@ -101,7 +138,7 @@ export function GameProvider({ children }) {
 
   return (
     <GameContext.Provider value={{
-      socket, room, setRoom, playerId, roomCode, phase, setPhase,
+      socket, connected, room, setRoom, playerId, roomCode, phase, setPhase,
       roundData, setRoundData, me, isHost, handleLeave
     }}>
       {children}
