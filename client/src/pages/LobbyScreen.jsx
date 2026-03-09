@@ -20,6 +20,7 @@ const PACKS = [
   { id: 'jobs', name: '💼 مشاغل' },
   { id: 'expressions', name: '💬 اصطلاحات' },
   { id: 'daily', name: '🏠 زندگی روزمره' },
+  { id: 'Bad Words', name: '🤬 کلمات ممنوعه' }
 ];
 
 export default function LobbyScreen() {
