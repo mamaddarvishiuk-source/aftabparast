@@ -35,11 +35,13 @@ export default function RevealScreen() {
   }, [revealed, hardMode, revealSeconds]);
 
   const handleAck = () => {
-    if (!acked) {
-      setAcked(true);
+  if (!acked) {
+    setAcked(true);
+    if (room?.settings?.mode !== 'hazouri') {
       socket.emit('game:revealAck');
     }
-  };
+  }
+};
 
   if (!roundData) return null;
 
@@ -132,18 +134,28 @@ export default function RevealScreen() {
               </div>
             )}
 
+            {room?.settings?.mode === 'hazouri' ? (
             <button
               className={`btn btn-lg btn-full ${acked ? 'btn-secondary' : 'btn-primary'}`}
               onClick={handleAck}
             >
-              {acked ? '⏳ منتظر بقیه...' : '✅ دیدم! آماده‌ام'}
+              {acked ? '✅ دیدم!' : '👀 دیدم، بستش کن!'}
             </button>
-
-            {acked && (
-              <p className="text-muted text-center" style={{ fontSize: '0.85rem' }}>
-                منتظر بقیه هستیم تا نگاه کنن...
-              </p>
-            )}
+          ) : (
+            <>
+              <button
+                className={`btn btn-lg btn-full ${acked ? 'btn-secondary' : 'btn-primary'}`}
+                onClick={handleAck}
+              >
+                {acked ? '⏳ منتظر بقیه...' : '✅ دیدم! آماده‌ام'}
+              </button>
+              {acked && (
+                <p className="text-muted text-center" style={{ fontSize: '0.85rem' }}>
+                  منتظر بقیه هستیم تا نگاه کنن...
+                </p>
+              )}
+            </>
+          )}
           </div>
         )}
       </div>

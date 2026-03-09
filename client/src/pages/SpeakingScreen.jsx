@@ -187,11 +187,16 @@ export default function SpeakingScreen() {
               ▶️ شروع تایمر
             </button>
           )}
-          {isHost && (
-            <button className="btn btn-primary btn-lg btn-full" onClick={handleNext}>
-              {currentIndex >= order.length - 1 ? '🗳️ رفتن به رأی‌گیری' : `⏭️ نفر بعدی (${order.length - currentIndex - 1} نفر مونده)`}
-            </button>
-          )}
+         {isHost && mode === 'hazouri' && (
+              <button className="btn btn-primary btn-lg btn-full" onClick={() => socket.emit('game:nextRound')}>
+                🔄 دور بعدی
+              </button>
+            )}
+            {isHost && mode !== 'hazouri' && (
+              <button className="btn btn-primary btn-lg btn-full" onClick={handleNext}>
+                {currentIndex >= order.length - 1 ? '🗳️ رفتن به رأی‌گیری' : `⏭️ نفر بعدی (${order.length - currentIndex - 1} نفر مونده)`}
+              </button>
+            )}
         </div>
 
         {/* Order list */}

@@ -171,12 +171,16 @@ export default function LobbyScreen() {
               </div>
             </div>
             <div className="toggle-row">
-              <div style={{ fontWeight: 700 }}>🦎 دو آفتاب‌پرست (۸+ نفر)</div>
-              <label className="toggle">
-                <input type="checkbox" checked={s.twoChameleons} onChange={e => updateSetting('twoChameleons', e.target.checked)} />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
+        <div style={{ fontWeight: 700 }}>🦎 تعداد آفتاب‌پرست</div>
+       <div style={{ display: 'flex', gap: 8 }}>
+           {[1, 2, 3].map(n => (
+          <button key={n} className="btn btn-sm" style={{
+              background: (s.numChameleons || 1) === n ? 'var(--accent)' : 'var(--bg2)',
+             padding: '6px 14px'
+              }} onClick={() => updateSetting('numChameleons', n)}>{n}</button>
+                ))}
+                    </div>
+                      </div>
             <div className="toggle-row">
               <div style={{ fontWeight: 700 }}>💪 حالت سخت (۱۰ثانیه دیدن کلمه)</div>
               <label className="toggle">

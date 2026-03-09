@@ -11,7 +11,10 @@ app.use(express.json());
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'] }
+  cors: { origin: '*', methods: ['GET', 'POST'] },
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  transports: ['websocket', 'polling']
 });
 
 // ─── In-memory room store ─────────────────────────────────────────────
@@ -76,7 +79,7 @@ function startRound(room) {
 
   // Assign chameleons
   const playerIds = room.players.map(p => p.id);
-  const numChameleons = settings.twoChameleons && playerIds.length >= 8 ? 2 : 1;
+  const numChameleons = Math.min(settings.numChameleons || 1, Math.floor(playerIds.length / 2));
   const shuffled = [...playerIds].sort(() => Math.random() - 0.5);
   const chameleonIds = shuffled.slice(0, numChameleons);
 
@@ -127,7 +130,7 @@ io.on('connection', (socket) => {
         mode: 'hazouri',        // hazouri | onlayn | tamrini
         timerSeconds: 20,
         revealSeconds: 10,
-        twoChameleons: false,
+        numChameleons: 1,
         hardMode: false,
         easyMode: false,
         familyMode: false,
@@ -175,9 +178,9 @@ io.on('connection', (socket) => {
       return;
     }
 
-    if (room.phase !== 'lobby') {
-      return socket.emit('error', { msg: '🙅 بازی شروع شده! نمیشه الان وارد شی.' });
-    }
+   if (room.phase !== 'lobby') {
+   return socket.emit('error', { msg: '🙅 بازی شروع شده! اگه قبلاً توی بازی بودی، با همون اسم وارد شو.' });
+   }  
     if (room.players.length >= 12) {
       return socket.emit('error', { msg: '😅 اتاق پره! جای خالی نیست.' });
     }
@@ -469,14 +472,17 @@ function handleLeave(socket) {
   if (player) {
     player.connected = false;
     io.to(roomCode).emit('room:updated', getPublicRoom(room));
-    io.to(roomCode).emit('toast', { msg: `📴 ${player.name} قطع شد`, type: 'warning' });
+    // Only notify if mid-game, not lobby
+    if (room.phase !== 'lobby') {
+      io.to(roomCode).emit('toast', { msg: `📴 ${player.name} قطع شد - میتونه برگرده`, type: 'warning' });
+    }
   }
-  // Clean up empty rooms after a delay
+  // Keep room alive for 2 hours to allow rejoin
   setTimeout(() => {
     if (rooms[roomCode] && rooms[roomCode].players.every(p => !p.connected)) {
       delete rooms[roomCode];
     }
-  }, 300000); // 5 min
+  }, 7200000); // 2 hours
 }
 
 // REST endpoint for word packs list
