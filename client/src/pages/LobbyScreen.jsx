@@ -257,9 +257,14 @@ export default function LobbyScreen() {
             </button>
           )}
 
-          <button className="btn btn-ghost btn-full" onClick={() => { socket.emit('room:leave'); handleLeave(); }}>
-            🚪 خروج
-          </button>
+         <button className="btn btn-ghost btn-full" onClick={() => {
+          localStorage.removeItem('aftabRoomCode');
+          localStorage.removeItem('aftabPlayerId');
+          localStorage.removeItem('aftabNickname');
+          window.location.href = '/';
+        }}>
+  🚪 خروج
+</button>
           <button className="btn btn-ghost btn-sm" style={{ color: 'var(--text2)' }} onClick={() => setPhase('help')}>
             📖 قوانین
           </button>
